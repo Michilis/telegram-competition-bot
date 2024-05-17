@@ -32,14 +32,14 @@ async function createUser(ctx) {
       wallet_name: `${username}'s wallet`
     });
 
-    console.log('User creation response:', user);
+    console.log('User creation response:', JSON.stringify(user, null, 2));
+
+    if (!user || !user.wallets || !user.wallets[0]) {
+      throw new Error('User creation response does not contain expected data');
+    }
 
     const userId = user.id;
     const walletId = user.wallets[0].id;
-
-    if (!userId || !walletId) {
-      throw new Error('User creation response does not contain expected data');
-    }
 
     // Save user data locally
     saveUserData(username, userId, walletId);
@@ -64,7 +64,7 @@ async function createLnurlp(ctx, userId) {
       username
     });
 
-    console.log('LNURLp creation response:', lnurlp);
+    console.log('LNURLp creation response:', JSON.stringify(lnurlp, null, 2));
 
     const linkId = lnurlp.id;
     ctx.reply(`LNURLp created successfully! Link ID: ${linkId}`);
