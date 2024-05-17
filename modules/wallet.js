@@ -7,16 +7,19 @@ const endpoint = process.env.LNBITS_URL;
 const DATA_FOLDER = 'data';
 
 // Initialize LNBits API
-const { userManager, wallet: walletAPI } = LNBits({
+const { userManager } = LNBits({
   adminKey: apiKey,
   endpoint
 });
 
 // Ensure the data folder exists
-if (!fs.existsSync(DATA_FOLDER)) {
-  fs.mkdirSync(DATA_FOLDER);
+function ensureDataFolder() {
+  if (!fs.existsSync(DATA_FOLDER)) {
+    fs.mkdirSync(DATA_FOLDER);
+  }
 }
 
+// Create user and wallet
 async function createUser(ctx) {
   const username = ctx.from.username;
   try {
@@ -62,11 +65,13 @@ async function createLnurlp(ctx, userId) {
 
 function saveUserData(username, userId, walletId) {
   const userData = { user_id: userId, wallet_id: walletId };
+  ensureDataFolder();
   fs.writeFileSync(`${DATA_FOLDER}/${username}.json`, JSON.stringify(userData));
 }
 
 function loadUserData(username) {
   try {
+    ensureDataFolder();
     const data = fs.readFileSync(`${DATA_FOLDER}/${username}.json`);
     return JSON.parse(data);
   } catch (error) {
