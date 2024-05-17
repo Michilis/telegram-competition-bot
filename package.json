@@ -1,5 +1,5 @@
 {
-  "name": "betting-bot",
+  "name": "telegram-competition-bot",
   "version": "1.0.0",
   "description": "Telegram bot for small fun bets between friends using the Bets4Sats LNBits API",
   "main": "bot.js",
@@ -23,6 +23,6 @@
     "lightning",
     "bitcoin"
   ],
-  "author": "Your Name",
+  "author": "Michilis",
   "license": "MIT"
 }
