@@ -1,31 +1,25 @@
-# messages.py
-WELCOME_MESSAGE = 'Welcome to the Betting Bot! Use /help to see available commands.'
-HELP_MESSAGE = (
-    'Available commands:\n'
-    '/start - Start the bot and list competitions\n'
-    '/help - Show this help message\n'
-    '/create_competition - Create a new competition\n'
-    '/list_competitions - List all competitions\n'
-    '/register_bet - Register a bet in a competition\n'
-    '/create_user - Create a new LNBits user\n'
-    '/send_sats - Send Sats to another user'
-)
-COMPETITION_CREATED_SUCCESS = 'Competition created successfully!'
-COMPETITION_CREATION_FAILED = 'Failed to create competition.'
-COMPETITIONS_LIST_FAILED = 'Failed to fetch competitions.'
-USER_CREATION_FAILED = 'Failed to create user.'
-WALLET_CREATION_FAILED = 'Failed to create wallet.'
-USER_AND_WALLET_CREATION_SUCCESS = 'User and wallet created successfully! User ID: {}, Wallet ID: {}'
-BET_REGISTERED_SUCCESS = 'Bet registered successfully!'
-BET_REGISTRATION_FAILED = 'Failed to register bet.'
-USER_NOT_FOUND = 'User not found. Please create a user first using /create_user.'
-USAGE_CREATE_COMPETITION = 'Usage: /create_competition <name> <info> <banner> <choices(comma-separated)> <closing_datetime> <amount_tickets>'
-CHOICES_LIMIT_ERROR = 'You must provide between 2 to 10 choices.'
-DM_ONLY_COMMAND = 'Wallet commands can only be used in a private chat with the bot.'
-ENTER_BET_AMOUNT = 'Please enter the bet amount in Sats:'
-SEND_SATS_USAGE = 'Usage: /send_sats <username> <amount>'
-SEND_SATS_SUCCESS = 'Sats sent successfully!'
-SEND_SATS_FAILED = 'Failed to send Sats.'
-PAY_INVOICE_SUCCESS = 'Invoice paid successfully!'
-PAY_INVOICE_FAILED = 'Failed to pay the invoice.'
-INVALID_INVOICE = 'Invalid Lightning invoice. Please try again.'
+module.exports = {
+  WELCOME_MESSAGE: 'Welcome to the Betting Bot! Use /help to see available commands.',
+  HELP_MESSAGE: 'Available commands:\n/start - Start the bot and list competitions\n/help - Show this help message\n/create_competition - Create a new competition\n/list_competitions - List all competitions\n/register_bet - Register a bet in a competition\n/create_user - Create a new LNBits user\n/send - Send Sats to another user\n/link - Link your wallet to an external app',
+  COMPETITION_CREATED_SUCCESS: 'Competition created successfully!',
+  COMPETITION_CREATION_FAILED: 'Failed to create competition.',
+  COMPETITIONS_LIST_FAILED: 'Failed to fetch competitions.',
+  USER_CREATION_FAILED: 'Failed to create user.',
+  WALLET_CREATION_FAILED: 'Failed to create wallet.',
+  USER_AND_WALLET_CREATION_SUCCESS: 'User and wallet created successfully! User ID: {}, Wallet ID: {}',
+  BET_REGISTERED_SUCCESS: 'Bet registered successfully!',
+  BET_REGISTRATION_FAILED: 'Failed to register bet.',
+  USER_NOT_FOUND: 'User not found. Please create a user first using /create_user.',
+  USAGE_CREATE_COMPETITION: 'Usage: /create_competition <name> <info> <banner> <choices(comma-separated)> <closing_datetime> <amount_tickets>',
+  CHOICES_LIMIT_ERROR: 'You must provide between 2 to 10 choices.',
+  DM_ONLY_COMMAND: 'Wallet commands can only be used in a private chat with the bot.',
+  ENTER_BET_AMOUNT: 'Please enter the bet amount in Sats:',
+  SEND_SATS_USAGE: 'Usage: /send <amount> <user@domain.com>',
+  SEND_SATS_SUCCESS: 'Sats sent successfully!',
+  SEND_SATS_FAILED: 'Failed to send Sats.',
+  PAY_INVOICE_SUCCESS: 'Invoice paid successfully!',
+  PAY_INVOICE_FAILED: 'Failed to pay the invoice.',
+  INVALID_INVOICE: 'Invalid Lightning invoice. Please try again.',
+  LINK_WALLET_SUCCESS: 'Use the following link to connect your wallet: {}/lndhub/ext/lnbits/.',
+  LINK_WALLET_FAILED: 'Failed to generate wallet link. Please try again later.'
+};
