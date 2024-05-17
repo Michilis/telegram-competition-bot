@@ -7,7 +7,7 @@ const endpoint = process.env.LNBITS_URL;
 const DATA_FOLDER = 'data';
 
 // Initialize LNBits API
-const { userManager } = LNBits({
+const { userManager, wallet: walletAPI } = LNBits({
   adminKey: apiKey,
   endpoint
 });
