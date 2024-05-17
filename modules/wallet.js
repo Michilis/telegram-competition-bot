@@ -42,7 +42,18 @@ async function createUser(ctx) {
     const walletId = user.wallets[0].id;
 
     // Save user data locally
-    saveUserData(username, userId, walletId);
+    const walletDetails = await walletAPI.walletDetails({ wallet_id: walletId });
+    const userData = {
+      user_id: userId,
+      wallet_id: walletId,
+      wallet_amount: walletDetails.balance,
+      bets_placed: [],
+      bets_created: [],
+      admin_key: apiKey,
+      created_at: new Date().toISOString()
+    };
+
+    saveUserData(username, userData);
 
     // Create LNURLp for the new wallet
     await createLnurlp(ctx, userId);
@@ -74,12 +85,11 @@ async function createLnurlp(ctx, userId) {
   }
 }
 
-function saveUserData(username, userId, walletId) {
-  const userData = { user_id: userId, wallet_id: walletId };
+function saveUserData(username, userData) {
   ensureDataFolder();
   const filePath = `${DATA_FOLDER}/${username}.json`;
   try {
-    fs.writeFileSync(filePath, JSON.stringify(userData));
+    fs.writeFileSync(filePath, JSON.stringify(userData, null, 2));
     console.log(`User data saved: ${filePath}`);
   } catch (error) {
     console.error('Error saving user data:', error.message);
