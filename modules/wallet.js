@@ -1,14 +1,16 @@
-const axios = require('axios');
+const LNBits = require('lnbits').default;
 const fs = require('fs');
 const messages = require('../messages');
 
-const LNBITS_URL = process.env.LNBITS_URL;
-const LNBITS_API_KEY = process.env.LNBITS_API_KEY;
+const adminKey = process.env.LNBITS_ADMIN_KEY;
+const endpoint = process.env.LNBITS_URL;
 const DATA_FOLDER = 'data';
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'X-Api-Key': LNBITS_API_KEY
-};
+
+// Initialize LNBits API
+const { userManager, wallet: walletAPI } = LNBits({
+  adminKey,
+  endpoint
+});
 
 // Ensure the data folder exists
 if (!fs.existsSync(DATA_FOLDER)) {
@@ -19,22 +21,14 @@ async function createUser(ctx) {
   const username = ctx.from.username;
   try {
     // Create a new user
-    const response = await axios.post(`${LNBITS_URL}/usermanager/api/v1/users`, {
+    const user = await userManager.createUser({
+      admin_id: 'admin_id',  // Replace with actual admin ID if required
       user_name: username,
-      email: `${username}@example.com`
-    }, { headers: HEADERS });
-
-    const user = response.data;
-    const userId = user.id;
-
-    // Create a wallet for the new user
-    const walletResponse = await axios.post(`${LNBITS_URL}/usermanager/api/v1/wallets`, {
-      user_id: userId,
       wallet_name: `${username}'s wallet`
-    }, { headers: HEADERS });
+    });
 
-    const wallet = walletResponse.data;
-    const walletId = wallet.id;
+    const userId = user.id;
+    const walletId = user.wallets[0].id;
 
     // Save user data locally
     saveUserData(username, userId, walletId);
@@ -52,14 +46,13 @@ async function createUser(ctx) {
 async function createLnurlp(ctx, userId) {
   const username = ctx.from.username;
   try {
-    const response = await axios.post(`${LNBITS_URL}/lnurlp/api/v1/links`, {
+    const lnurlp = await userManager.createLnurl({
       user_id: userId,
       description: 'Lightning Address',
       amount: 0,
       username
-    }, { headers: HEADERS });
+    });
 
-    const lnurlp = response.data;
     const linkId = lnurlp.id;
     ctx.reply(`LNURLp created successfully! Link ID: ${linkId}`);
   } catch (error) {
@@ -127,13 +120,13 @@ async function sendSats(ctx, amountStr, recipient) {
   const recipientLnurl = `${LNBITS_URL}/lnurlp/api/v1/well-known/${recipientUsername}@${recipientDomain}`;
 
   try {
-    await axios.post(`${LNBITS_URL}/payments`, {
+    await walletAPI.payInvoice({
+      bolt11: recipientLnurl,
       out: true,
       amount,
       wallet_id: senderWalletId,
-      memo: 'Sending Sats',
-      payment_request: recipientLnurl
-    }, { headers: HEADERS });
+      memo: 'Sending Sats'
+    });
 
     ctx.reply(messages.SEND_SATS_SUCCESS);
   } catch (error) {
@@ -153,11 +146,11 @@ async function payInvoice(ctx, invoice) {
   const walletId = userData.wallet_id;
 
   try {
-    await axios.post(`${LNBITS_URL}/payments`, {
+    await walletAPI.payInvoice({
+      bolt11: invoice,
       out: true,
-      wallet_id: walletId,
-      payment_request: invoice
-    }, { headers: HEADERS });
+      wallet_id: walletId
+    });
 
     ctx.reply(messages.PAY_INVOICE_SUCCESS);
   } catch (error) {
