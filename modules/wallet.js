@@ -10,9 +10,15 @@ const HEADERS = {
   'X-Api-Key': LNBITS_API_KEY
 };
 
+// Ensure the data folder exists
+if (!fs.existsSync(DATA_FOLDER)) {
+  fs.mkdirSync(DATA_FOLDER);
+}
+
 async function createUser(ctx) {
   const username = ctx.from.username;
   try {
+    // Create a new user
     const response = await axios.post(`${LNBITS_URL}/usermanager/api/v1/users`, {
       user_name: username,
       email: `${username}@example.com`
@@ -21,6 +27,7 @@ async function createUser(ctx) {
     const user = response.data;
     const userId = user.id;
 
+    // Create a wallet for the new user
     const walletResponse = await axios.post(`${LNBITS_URL}/usermanager/api/v1/wallets`, {
       user_id: userId,
       wallet_name: `${username}'s wallet`
@@ -29,10 +36,15 @@ async function createUser(ctx) {
     const wallet = walletResponse.data;
     const walletId = wallet.id;
 
-    await createLnurlp(ctx, userId);
-    ctx.reply(messages.USER_AND_WALLET_CREATION_SUCCESS.replace('{}', userId).replace('{}', walletId));
+    // Save user data locally
     saveUserData(username, userId, walletId);
+
+    // Create LNURLp for the new wallet
+    await createLnurlp(ctx, userId);
+
+    ctx.reply(messages.USER_AND_WALLET_CREATION_SUCCESS.replace('{}', userId).replace('{}', walletId));
   } catch (error) {
+    console.error('Error creating user or wallet:', error.response ? error.response.data : error.message);
     ctx.reply(messages.USER_CREATION_FAILED);
   }
 }
@@ -51,6 +63,7 @@ async function createLnurlp(ctx, userId) {
     const linkId = lnurlp.id;
     ctx.reply(`LNURLp created successfully! Link ID: ${linkId}`);
   } catch (error) {
+    console.error('Error creating LNURLp:', error.response ? error.response.data : error.message);
     ctx.reply('Failed to create LNURLp.');
   }
 }
@@ -65,6 +78,7 @@ function loadUserData(username) {
     const data = fs.readFileSync(`${DATA_FOLDER}/${username}.json`);
     return JSON.parse(data);
   } catch (error) {
+    console.error('Error loading user data:', error.message);
     return null;
   }
 }
@@ -88,6 +102,7 @@ async function linkWallet(ctx) {
   try {
     ctx.reply(messages.LINK_WALLET_SUCCESS.replace('{}', process.env.LNBITS_PUBLIC_URL));
   } catch (error) {
+    console.error('Error linking wallet:', error.message);
     ctx.reply(messages.LINK_WALLET_FAILED);
   }
 }
@@ -122,6 +137,7 @@ async function sendSats(ctx, amountStr, recipient) {
 
     ctx.reply(messages.SEND_SATS_SUCCESS);
   } catch (error) {
+    console.error('Error sending Sats:', error.response ? error.response.data : error.message);
     ctx.reply(messages.SEND_SATS_FAILED);
   }
 }
@@ -145,6 +161,7 @@ async function payInvoice(ctx, invoice) {
 
     ctx.reply(messages.PAY_INVOICE_SUCCESS);
   } catch (error) {
+    console.error('Error paying invoice:', error.response ? error.response.data : error.message);
     ctx.reply(messages.PAY_INVOICE_FAILED);
   }
 }
@@ -167,6 +184,7 @@ async function handleQrCode(ctx) {
       ctx.reply(messages.INVALID_INVOICE);
     }
   } catch (error) {
+    console.error('Error handling QR code:', error.response ? error.response.data : error.message);
     ctx.reply(messages.INVALID_INVOICE);
   }
 }
