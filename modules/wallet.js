@@ -41,8 +41,10 @@ async function createUser(ctx) {
     const userId = user.id;
     const walletId = user.wallets[0].id;
 
-    // Save user data locally
+    // Retrieve wallet details
     const walletDetails = await walletAPI.walletDetails({ wallet_id: walletId });
+    console.log('Wallet details:', JSON.stringify(walletDetails, null, 2));
+
     const userData = {
       user_id: userId,
       wallet_id: walletId,
