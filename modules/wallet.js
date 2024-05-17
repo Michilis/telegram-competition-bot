@@ -2,13 +2,13 @@ const LNBits = require('lnbits').default;
 const fs = require('fs');
 const messages = require('../messages');
 
-const adminKey = process.env.LNBITS_ADMIN_KEY;
+const apiKey = process.env.LNBITS_API_KEY;
 const endpoint = process.env.LNBITS_URL;
 const DATA_FOLDER = 'data';
 
 // Initialize LNBits API
-const { userManager, wallet: walletAPI } = LNBits({
-  adminKey,
+const { userManager } = LNBits({
+  adminKey: apiKey,
   endpoint
 });
 
@@ -22,7 +22,6 @@ async function createUser(ctx) {
   try {
     // Create a new user
     const user = await userManager.createUser({
-      admin_id: 'admin_id',  // Replace with actual admin ID if required
       user_name: username,
       wallet_name: `${username}'s wallet`
     });
@@ -117,7 +116,7 @@ async function sendSats(ctx, amountStr, recipient) {
   }
 
   const senderWalletId = userData.wallet_id;
-  const recipientLnurl = `${LNBITS_URL}/lnurlp/api/v1/well-known/${recipientUsername}@${recipientDomain}`;
+  const recipientLnurl = `${endpoint}/lnurlp/api/v1/well-known/${recipientUsername}@${recipientDomain}`;
 
   try {
     await walletAPI.payInvoice({
