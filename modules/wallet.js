@@ -14,7 +14,7 @@ async function createUser(ctx) {
   const username = ctx.from.username;
   try {
     const response = await axios.post(`${LNBITS_URL}/usermanager/api/v1/users`, {
-      name: username,
+      user_name: username,
       email: `${username}@example.com`
     }, { headers: HEADERS });
 
@@ -23,7 +23,7 @@ async function createUser(ctx) {
 
     const walletResponse = await axios.post(`${LNBITS_URL}/usermanager/api/v1/wallets`, {
       user_id: userId,
-      name: `${username}'s wallet`
+      wallet_name: `${username}'s wallet`
     }, { headers: HEADERS });
 
     const wallet = walletResponse.data;
@@ -92,9 +92,91 @@ async function linkWallet(ctx) {
   }
 }
 
+async function sendSats(ctx, amountStr, recipient) {
+  const username = ctx.from.username;
+  const userData = loadUserData(username);
+  if (!userData) {
+    ctx.reply(messages.USER_NOT_FOUND);
+    return;
+  }
+
+  const amount = parseInt(amountStr, 10);
+  const [recipientUsername, recipientDomain] = recipient.split('@');
+  const recipientData = loadUserData(recipientUsername);
+  if (!recipientData) {
+    ctx.reply('Recipient not found.');
+    return;
+  }
+
+  const senderWalletId = userData.wallet_id;
+  const recipientLnurl = `${LNBITS_URL}/lnurlp/api/v1/well-known/${recipientUsername}@${recipientDomain}`;
+
+  try {
+    await axios.post(`${LNBITS_URL}/payments`, {
+      out: true,
+      amount,
+      wallet_id: senderWalletId,
+      memo: 'Sending Sats',
+      payment_request: recipientLnurl
+    }, { headers: HEADERS });
+
+    ctx.reply(messages.SEND_SATS_SUCCESS);
+  } catch (error) {
+    ctx.reply(messages.SEND_SATS_FAILED);
+  }
+}
+
+async function payInvoice(ctx, invoice) {
+  const username = ctx.from.username;
+  const userData = loadUserData(username);
+  if (!userData) {
+    ctx.reply(messages.USER_NOT_FOUND);
+    return;
+  }
+
+  const walletId = userData.wallet_id;
+
+  try {
+    await axios.post(`${LNBITS_URL}/payments`, {
+      out: true,
+      wallet_id: walletId,
+      payment_request: invoice
+    }, { headers: HEADERS });
+
+    ctx.reply(messages.PAY_INVOICE_SUCCESS);
+  } catch (error) {
+    ctx.reply(messages.PAY_INVOICE_FAILED);
+  }
+}
+
+async function handleQrCode(ctx) {
+  const photo = ctx.message.photo.pop();
+  const fileId = photo.file_id;
+  const file = await bot.telegram.getFile(fileId);
+  const filePath = file.file_path;
+  const fileUrl = `https://api.telegram.org/file/bot${process.env.TELEGRAM_BOT_TOKEN}/${filePath}`;
+
+  try {
+    const response = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+    const imageBuffer = Buffer.from(response.data, 'binary');
+    const qrCode = await decode(imageBuffer);
+
+    if (qrCode) {
+      await payInvoice(ctx, qrCode.data);
+    } else {
+      ctx.reply(messages.INVALID_INVOICE);
+    }
+  } catch (error) {
+    ctx.reply(messages.INVALID_INVOICE);
+  }
+}
+
 module.exports = {
   createUser,
   createWallet,
   loadUserData,
-  linkWallet
+  linkWallet,
+  sendSats,
+  payInvoice,
+  handleQrCode
 };
