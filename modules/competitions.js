@@ -1,5 +1,6 @@
 const axios = require('axios');
 const messages = require('../messages');
+const { loadUserData } = require('./wallet');
 
 const LNBITS_URL = process.env.LNBITS_URL;
 const LNBITS_API_KEY = process.env.LNBITS_API_KEY;
@@ -9,7 +10,6 @@ const HEADERS = {
 };
 
 async function createCompetition(ctx, args) {
-  const { loadUserData } = require('./wallet');
   const username = ctx.from.username;
   const userData = loadUserData(username);
   if (!userData) {
