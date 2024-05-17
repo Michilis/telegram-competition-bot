@@ -1,5 +1,6 @@
 const LNBits = require('lnbits').default;
 const fs = require('fs');
+const axios = require('axios');
 const messages = require('../messages');
 
 const apiKey = process.env.LNBITS_API_KEY;
@@ -7,7 +8,7 @@ const endpoint = process.env.LNBITS_URL;
 const DATA_FOLDER = 'data';
 
 // Initialize LNBits API
-const { userManager } = LNBits({
+const { userManager, wallet: walletAPI } = LNBits({
   adminKey: apiKey,
   endpoint
 });
@@ -23,14 +24,22 @@ function ensureDataFolder() {
 async function createUser(ctx) {
   const username = ctx.from.username;
   try {
+    console.log(`Attempting to create user: ${username}`);
+
     // Create a new user
     const user = await userManager.createUser({
       user_name: username,
       wallet_name: `${username}'s wallet`
     });
 
+    console.log('User creation response:', user);
+
     const userId = user.id;
     const walletId = user.wallets[0].id;
+
+    if (!userId || !walletId) {
+      throw new Error('User creation response does not contain expected data');
+    }
 
     // Save user data locally
     saveUserData(username, userId, walletId);
@@ -55,6 +64,8 @@ async function createLnurlp(ctx, userId) {
       username
     });
 
+    console.log('LNURLp creation response:', lnurlp);
+
     const linkId = lnurlp.id;
     ctx.reply(`LNURLp created successfully! Link ID: ${linkId}`);
   } catch (error) {
@@ -66,16 +77,24 @@ async function createLnurlp(ctx, userId) {
 function saveUserData(username, userId, walletId) {
   const userData = { user_id: userId, wallet_id: walletId };
   ensureDataFolder();
-  fs.writeFileSync(`${DATA_FOLDER}/${username}.json`, JSON.stringify(userData));
+  const filePath = `${DATA_FOLDER}/${username}.json`;
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(userData));
+    console.log(`User data saved: ${filePath}`);
+  } catch (error) {
+    console.error('Error saving user data:', error.message);
+  }
 }
 
 function loadUserData(username) {
+  ensureDataFolder();
+  const filePath = `${DATA_FOLDER}/${username}.json`;
   try {
-    ensureDataFolder();
-    const data = fs.readFileSync(`${DATA_FOLDER}/${username}.json`);
+    const data = fs.readFileSync(filePath);
+    console.log(`User data loaded: ${filePath}`);
     return JSON.parse(data);
   } catch (error) {
-    console.error('Error loading user data:', error.message);
+    console.error(`Error loading user data (${filePath}):`, error.message);
     return null;
   }
 }
